@@ -156,6 +156,85 @@
     return html;
   }
 
+  // 集团版 AI 数据参谋(4个网系各出一个, 不跨网系比)
+  function groupAiOverview(period) {
+    var isToday = period === 'today' || period === 'overview';
+    var p = period === 'overview' ? 'today' : period;
+    var groupOv = M.buildOverview(null, p);
+    groupOv.view = period;
+
+    // 每个网系各取冠军和垫底
+    var brandStars = [];
+    var brandWarns = [];
+    M.BRANDS.forEach(function (b) {
+      var ranks = M.storeRanking(b.id, p).slice().sort(function(a,b){ return b.t.deliveries - a.t.deliveries; });
+      var star = ranks[0];
+      var warn = ranks[ranks.length - 1];
+      brandStars.push({ brand: b, store: star.store, val: star.t.deliveries });
+      // 找问题最突出的(交车最少)
+      var bOv = M.buildOverview(b.id, p);
+      brandWarns.push({ brand: b, store: warn.store, val: warn.t.deliveries, reason: '交车最少' });
+    });
+
+    var starTitle = isToday ? '🏆 网系之星' : '⭐ 网系之星';
+    var warnTitle = isToday ? '⚠️ 需关注' : '⚠️ 排名垫底';
+
+    var html = '<div class="ai-card">' +
+      '<div class="ai-header"><span class="ai-avatar">🤖</span><div class="ai-title">AI 数据参谋</div></div>';
+
+    // AI 分析(周/月才有)
+    if (groupOv.aiAnalysis && groupOv.aiAnalysis.length) {
+      html += '<div class="ai-section"><div class="ai-sec-title">💡 AI 分析</div><div class="ai-alerts">';
+      groupOv.aiAnalysis.forEach(function (s, i) {
+        html += '<div class="ai-alert info"><b>' + (i+1) + '.</b> ' + s + '</div>';
+      });
+      html += '</div></div>';
+    }
+
+    // 网系之星(每网系1个, 按交车)
+    html += '<div class="ai-section"><div class="ai-sec-title">' + starTitle + '</div><div class="ai-brand-list">';
+    brandStars.forEach(function (x) {
+      html += '<div class="ai-brand-item" onclick="go(\'/brand/' + x.brand.id + '\')">' +
+        '<div class="ai-brand-name">' + x.brand.name + '</div>' +
+        '<div class="ai-brand-store">' + esc(x.store.name) + '</div>' +
+        '<div class="ai-brand-val">' + x.val + '<small>台交车</small></div>' +
+        '</div>';
+    });
+    html += '</div></div>';
+
+    // 需关注(每网系1个)
+    html += '<div class="ai-section"><div class="ai-sec-title">' + warnTitle + '</div><div class="ai-brand-list">';
+    brandWarns.forEach(function (x) {
+      html += '<div class="ai-brand-item warn" onclick="go(\'/brand/' + x.brand.id + '\')">' +
+        '<div class="ai-brand-name">' + x.brand.name + '</div>' +
+        '<div class="ai-brand-store">' + esc(x.store.name) + '</div>' +
+        '<div class="ai-brand-val">' + x.val + '<small>台 · ' + x.reason + '</small></div>' +
+        '</div>';
+    });
+    html += '</div></div>';
+
+    // 渠道洞察
+    if (groupOv.channelInsights && groupOv.channelInsights.length) {
+      html += '<div class="ai-section"><div class="ai-sec-title">📊 渠道洞察</div><div class="ai-alerts">';
+      groupOv.channelInsights.forEach(function (s) {
+        html += '<div class="ai-alert info">' + s + '</div>';
+      });
+      html += '</div></div>';
+    }
+
+    // 异常预警(只有昨日有)
+    if (isToday && groupOv.anomalies && groupOv.anomalies.length) {
+      html += '<div class="ai-section"><div class="ai-sec-title">🚨 异常预警 (' + groupOv.anomalies.length + ')</div><div class="ai-alerts">';
+      groupOv.anomalies.forEach(function (a) {
+        html += '<div class="ai-alert ' + a.level + '">' + a.msg + '</div>';
+      });
+      html += '</div></div>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
   // 图表渲染
   var _charts = [];
   function chartPlaceholder(id, title) {
@@ -249,6 +328,19 @@
       series: [{ type: 'bar', barMaxWidth: 42,
         data: sorted.map(function(x){return Math.round(x.t.convRate * 1000) / 10;}),
         itemStyle: { color: '#f59e0b', borderRadius: [6,6,0,0] } }]
+    });
+  }
+
+  // 交车门店排名
+  function renderDeliveryRank(id, storeStats) {
+    var sorted = storeStats.slice().sort(function(a,b){ return b.t.deliveries - a.t.deliveries; });
+    renderChart(id, {
+      grid: { left: 30, right: 20, top: 20, bottom: 40 },
+      tooltip: { trigger: 'axis', valueFormatter: function(v){return v+' 台';} },
+      xAxis: { type: 'category', data: sorted.map(function(x){return x.store.name;}), axisLabel: {fontSize:11} },
+      yAxis: { type: 'value', name: '台' },
+      series: [{ type: 'bar', barMaxWidth: 42, data: sorted.map(function(x){return x.t.deliveries;}),
+        itemStyle: { color: '#8b5cf6', borderRadius: [6,6,0,0] } }]
     });
   }
 
@@ -355,11 +447,11 @@
     ch.setOption({
       grid: { left: 40, right: 40, top: 30, bottom: 40 },
       tooltip: { trigger: 'axis' },
-      legend: { data: ['线索', '到店', '订单'], bottom: 0, textStyle: {fontSize: 11} },
+      legend: { data: ['线索', '到店', '订单', '交车'], bottom: 0, textStyle: {fontSize: 11} },
       xAxis: { type: 'category', data: sn.map(function(x){return x.label;}), axisLabel: {fontSize:10} },
       yAxis: [
         { type: 'value', name: '线索' },
-        { type: 'value', name: '到店/订单' }
+        { type: 'value', name: '到店/订单/交车' }
       ],
       series: [
         { name: '线索', type: 'bar', barMaxWidth: 18, data: sn.map(function(x){return x.leadsTotal;}),
@@ -374,7 +466,8 @@
           }
         },
         { name: '到店', type: 'line', smooth: true, yAxisIndex: 1, data: sn.map(function(x){return x.visits;}), itemStyle: { color: '#2563eb' }, lineStyle: { width: 2 } },
-        { name: '订单', type: 'line', smooth: true, yAxisIndex: 1, data: sn.map(function(x){return x.orders;}), itemStyle: { color: '#07c160' }, lineStyle: { width: 2 } }
+        { name: '订单', type: 'line', smooth: true, yAxisIndex: 1, data: sn.map(function(x){return x.orders;}), itemStyle: { color: '#07c160' }, lineStyle: { width: 2 } },
+        { name: '交车', type: 'line', smooth: true, yAxisIndex: 1, data: sn.map(function(x){return x.deliveries;}), itemStyle: { color: '#8b5cf6' }, lineStyle: { width: 2 } }
       ]
     });
   }
@@ -434,17 +527,22 @@
   }
 
   function metricBlock(t, title) {
-    return '<div class="section-title">' + title + '</div><div class="metric-grid">' +
+    return '<div class="section-title">' + title + '</div>' +
+      '<div class="metric-grid">' +
       '<div class="metric"><div class="m-label">线索成本</div><div class="m-val">' + money(t.cpl) + '</div><div class="m-sub">每条线索</div></div>' +
       '<div class="metric"><div class="m-label">订单成本</div><div class="m-val">' + money(t.orderCost) + '</div><div class="m-sub">每个订单</div></div>' +
-      '<div class="metric"><div class="m-label">交车成本</div><div class="m-val">' + money(t.deliveryCost) + '</div><div class="m-sub">每台交车(IT)</div></div>' +
+      '<div class="metric"><div class="m-label">交车成本</div><div class="m-val">' + money(t.deliveryCost) + '</div><div class="m-sub">每台交车</div></div>' +
+      '</div>' +
+      '<div class="metric-grid">' +
+      '<div class="metric"><div class="m-label">线索到店率</div><div class="m-val">' + pct(t.visitRate) + '</div><div class="m-sub">线索→到店</div></div>' +
       '<div class="metric"><div class="m-label">线索转化率</div><div class="m-val">' + pct(t.convRate) + '</div><div class="m-sub">线索→订单</div></div>' +
+      '<div class="metric"><div class="m-label">线索交车率</div><div class="m-val">' + pct(t.deliveryRate) + '</div><div class="m-sub">线索→交车</div></div>' +
       '</div>';
   }
 
   function anchorRankBlock(list, title, showCost) {
     var html = '<div class="section-title">' + title + '</div><div class="card"><table class="rank-table">' +
-      '<thead><tr><th>#</th><th>主播</th><th>线索</th><th>到店</th><th>订单</th>' + (showCost ? '<th>总消耗</th>' : '') + '</tr></thead><tbody>';
+      '<thead><tr><th>#</th><th>主播</th><th>线索</th><th>到店</th><th>订单</th><th>交车</th>' + (showCost ? '<th>总消耗</th>' : '') + '</tr></thead><tbody>';
     list.forEach(function (x, i) {
       html += '<tr onclick="go(\'/anchor/' + x.anchor.id + '\')">' +
         '<td><span class="rank-num' + (i < 3 ? ' top' : '') + '">' + (i + 1) + '</span></td>' +
@@ -452,6 +550,7 @@
         '<td><b>' + x.t.leadsTotal + '</b></td>' +
         '<td>' + x.t.visits + '</td>' +
         '<td>' + x.t.orders + '</td>' +
+        '<td>' + x.t.deliveries + '</td>' +
         (showCost ? '<td>' + money(x.t.costTotal) + '</td>' : '') +
         '</tr>';
     });
@@ -481,27 +580,29 @@
     var b = M.brandById(brandId);
     var t = M.brandAgg(brandId, period);
     var stores = M.storesOfBrand(brandId);
-    var ranks = M.storeRanking(brandId, period);
+    var ranks = M.storeRanking(brandId, period).slice().sort(function(a,b){ return b.t.deliveries - a.t.deliveries; });
     var top3 = ranks.slice(0, 3);
-    var visitRate = t.leadsTotal ? t.visits / t.leadsTotal : 0;
 
     var html = '<div class="brand-card" onclick="go(\'/brand/' + brandId + '\')">' +
       '<div class="bc-header">' +
       '<span class="bc-name">' + b.name + '</span>' +
       '<span class="bc-count">' + stores.length + '家门店</span>' +
       '</div>' +
+      '<div class="bc-delivery">' +
+      '<span class="bc-dlv-label">交车</span>' +
+      '<span class="bc-dlv-val">' + t.deliveries + '<small>台</small></span>' +
+      '</div>' +
       '<div class="bc-metrics">' +
       '<div><span>订单</span><b>' + t.orders + '</b><small>台</small></div>' +
-      '<div><span>线索</span><b>' + t.leadsTotal + '</b><small>条</small></div>' +
-      '<div><span>转化率</span><b>' + pct(t.convRate) + '</b></div>' +
+      '<div><span>线索</span><b>' + num(t.leadsTotal) + '</b><small>条</small></div>' +
       '</div>' +
-      '<div class="bc-top-title">门店 TOP3</div>' +
+      '<div class="bc-top-title">门店 TOP3 <small>(按交车)</small></div>' +
       '<div class="bc-top-list">';
     top3.forEach(function (x, i) {
       html += '<div class="bc-top-item">' +
         '<span class="bc-rank">' + (i+1) + '</span>' +
         '<span class="bc-top-name">' + esc(x.store.name) + '</span>' +
-        '<span class="bc-top-val">' + x.t.orders + '台</span>' +
+        '<span class="bc-top-val">' + x.t.deliveries + '台</span>' +
         '</div>';
     });
     html += '</div></div>';
@@ -509,7 +610,7 @@
   }
 
   // 按城市分组的门店导航(集团总览用)
-  function buildCityNavCards() {
+  function buildCityNavCards(clean) {
     var cities = {};
     M.STORES.forEach(function (s) {
       if (!cities[s.city]) cities[s.city] = [];
@@ -521,23 +622,28 @@
     cityList.forEach(function (city) {
       var stores = cities[city];
       // 计算城市合计
-      var leads = 0, orders = 0;
+      var leads = 0, dlv = 0;
       stores.forEach(function (s) {
         var t = M.storeAgg(s.id, 'today');
-        leads += t.leadsTotal; orders += t.orders;
+        leads += t.leadsTotal; dlv += t.deliveries;
       });
       html += '<div class="city-block">' +
         '<div class="city-header"><span class="city-name">' + city + '</span>' +
-        '<span class="city-sub">' + stores.length + '家门店 · ' + leads + '条线索 · ' + orders + '台订单</span></div>' +
+        '<span class="city-sub">' + stores.length + '家门店</span></div>' +
         '<div class="store-nav">';
       stores.forEach(function (s) {
         var t = M.storeAgg(s.id, 'today');
-        html += '<div class="store-nav-card small" onclick="go(\'/store/' + s.id + '\')">' +
-          '<div class="snc-name">' + esc(s.name) + '</div>' +
-          '<div class="snc-metrics">' +
-          '<div><span>线索</span><b>' + t.leadsTotal + '</b></div>' +
-          '<div><span>订单</span><b>' + t.orders + '</b></div>' +
-          '</div></div>';
+        if (clean) {
+          html += '<div class="store-nav-card clean" onclick="go(\'/store/' + s.id + '\')">' +
+            '<div class="snc-name">' + esc(s.name) + '</div></div>';
+        } else {
+          html += '<div class="store-nav-card small" onclick="go(\'/store/' + s.id + '\')">' +
+            '<div class="snc-name">' + esc(s.name) + '</div>' +
+            '<div class="snc-metrics">' +
+            '<div><span>线索</span><b>' + t.leadsTotal + '</b></div>' +
+            '<div><span>交车</span><b>' + t.deliveries + '</b></div>' +
+            '</div></div>';
+        }
       });
       html += '</div></div>';
     });
@@ -595,15 +701,27 @@
     // ===== 核心指标区 =====
     html += '<div class="kpi-tag">昨日数据 · ' + scopeName + '</div>';
 
-    // 1. 订单 + 总线索（左右并排）
+    // 1. 订单 + 交车（左右并排，最突出）
     html += '<div class="hero-grid">' +
       '<div class="hero-order">' +
       '<div class="hero-label">订单</div>' +
-      '<div class="hero-val">' + t.orders + '<small>台</small></div>' +
+      '<div class="hero-val">' + num(t.orders) + '<small>台</small></div>' +
       '</div>' +
       '<div class="hero-order">' +
-      '<div class="hero-label">总线索</div>' +
-      '<div class="hero-val">' + num(t.leadsTotal) + '<small>条</small></div>' +
+      '<div class="hero-label">交车</div>' +
+      '<div class="hero-val">' + num(t.deliveries) + '<small>台</small></div>' +
+      '</div>' +
+      '</div>';
+
+    // 2. 线索 + 到店（左右并排，次一级）
+    html += '<div class="sub-kpi-grid">' +
+      '<div class="sub-kpi">' +
+      '<div class="sub-kpi-label">总线索</div>' +
+      '<div class="sub-kpi-val">' + num(t.leadsTotal) + '<small>条</small></div>' +
+      '</div>' +
+      '<div class="sub-kpi">' +
+      '<div class="sub-kpi-label">到店</div>' +
+      '<div class="sub-kpi-val">' + num(t.visits) + '<small>组</small></div>' +
       '</div>' +
       '</div>';
 
@@ -632,9 +750,9 @@
       '<div><span>厂家</span><b>' + money(changjia) + '</b></div>' +
       '</div></div>';
 
-    // 5. 转化（到店率+线索转化率）
+    // 5. 转化（到店率+线索转化率+交车率）
     var visitRate = t.leadsTotal ? t.visits / t.leadsTotal : 0;
-    html += '<div class="card conv-hero">' +
+    html += '<div class="card conv-hero three">' +
       '<div>' +
       '  <div class="conv-label">线索到店率</div>' +
       '  <div class="conv-val">' + pct(visitRate) + '</div>' +
@@ -642,12 +760,16 @@
       '<div>' +
       '  <div class="conv-label">线索转化率</div>' +
       '  <div class="conv-val">' + pct(t.convRate) + '</div>' +
+      '</div>' +
+      '<div>' +
+      '  <div class="conv-label">线索交车率</div>' +
+      '  <div class="conv-val">' + pct(t.deliveryRate) + '</div>' +
       '</div></div>';
 
     // 门店排名图
     html += chartPlaceholder('c1', '总线索门店排名');
     html += chartPlaceholder('c2', '订单门店排名');
-    html += chartPlaceholder('c3', '到店率门店排名');
+    html += chartPlaceholder('c3', '交车门店排名');
     html += chartPlaceholder('c4', '线索转化率门店排名');
     if (showAnchorRanks !== false) html += anchorRankBlock(anchorRanks, '主播排名(按线索)', true);
     if (showStoreNav !== false) html += storeNavCards(storeList);
@@ -657,7 +779,7 @@
       charts: [
         { type: 'leadsRank', id: 'c1', data: ov.storeStats },
         { type: 'ordersRank', id: 'c2', data: ov.storeStats },
-        { type: 'visitRateRank', id: 'c3', data: ov.storeStats },
+        { type: 'deliveryRank', id: 'c3', data: ov.storeStats },
         { type: 'convRateRank', id: 'c4', data: ov.storeStats }
       ]
     };
@@ -748,25 +870,20 @@
       var t = M.groupAgg('today');
       var charts = [];
 
+      html += groupAiOverview('today');
       html += '<div class="kpi-tag">昨日数据 · 全集团</div>';
 
-      // 核心指标: 订单 + 线索
+      // 核心指标: 订单 + 交车
       html += '<div class="hero-grid">' +
         '<div class="hero-order">' +
         '<div class="hero-label">订单</div>' +
         '<div class="hero-val">' + num(t.orders) + '<small>台</small></div>' +
         '</div>' +
         '<div class="hero-order">' +
-        '<div class="hero-label">总线索</div>' +
-        '<div class="hero-val">' + num(t.leadsTotal) + '<small>条</small></div>' +
+        '<div class="hero-label">交车</div>' +
+        '<div class="hero-val">' + num(t.deliveries) + '<small>台</small></div>' +
         '</div>' +
         '</div>';
-
-      // 城市对比 + 网系对比
-      html += '<div class="section-title">城市对比</div><div class="card"><div id="city-comp" style="height:260px"></div></div>';
-      html += '<div class="section-title">网系对比</div><div class="card"><div id="brand-comp" style="height:260px"></div></div>';
-      charts.push({ type: 'cityCompare', id: 'city-comp' });
-      charts.push({ type: 'brandCompare', id: 'brand-comp' });
 
       // 网系分析(4个卡片)
       html += '<div class="section-title">网系分析</div>';
@@ -774,8 +891,8 @@
         html += brandAnalysisCard(b.id, 'today');
       });
 
-      // 各城市门店导航
-      html += buildCityNavCards();
+      // 各城市门店(只显示店名，无指标)
+      html += buildCityNavCards(true);
       html += footnote();
       html += '</div>';
       return { html: html, charts: charts };
@@ -790,18 +907,30 @@
     var ov = M.buildOverview(null, period);
     ov.view = period;
 
-    html += aiOverview(ov);
+    html += groupAiOverview(period);
     html += '<div class="kpi-tag">' + pInfo.label + '累计 · 全集团</div>';
 
-    // 核心指标: 订单 + 线索
+    // 核心指标: 订单 + 交车
     html += '<div class="hero-grid">' +
       '<div class="hero-order">' +
       '<div class="hero-label">订单</div>' +
       '<div class="hero-val">' + num(t.orders) + '<small>台</small></div>' +
       '</div>' +
       '<div class="hero-order">' +
-      '<div class="hero-label">总线索</div>' +
-      '<div class="hero-val">' + num(t.leadsTotal) + '<small>条</small></div>' +
+      '<div class="hero-label">交车</div>' +
+      '<div class="hero-val">' + num(t.deliveries) + '<small>台</small></div>' +
+      '</div>' +
+      '</div>';
+
+    // 次级: 线索 + 到店
+    html += '<div class="sub-kpi-grid">' +
+      '<div class="sub-kpi">' +
+      '<div class="sub-kpi-label">总线索</div>' +
+      '<div class="sub-kpi-val">' + num(t.leadsTotal) + '<small>条</small></div>' +
+      '</div>' +
+      '<div class="sub-kpi">' +
+      '<div class="sub-kpi-label">到店</div>' +
+      '<div class="sub-kpi-val">' + num(t.visits) + '<small>组</small></div>' +
       '</div>' +
       '</div>';
 
@@ -832,9 +961,10 @@
 
     // 转化
     var _vr = t.leadsTotal ? t.visits / t.leadsTotal : 0;
-    html += '<div class="card conv-hero">' +
+    html += '<div class="card conv-hero three">' +
       '<div><div class="conv-label">线索到店率</div><div class="conv-val">' + pct(_vr) + '</div></div>' +
       '<div><div class="conv-label">线索转化率</div><div class="conv-val">' + pct(t.convRate) + '</div></div>' +
+      '<div><div class="conv-label">线索交车率</div><div class="conv-val">' + pct(t.deliveryRate) + '</div></div>' +
       '</div>';
 
     // 趋势 + 网系对比 + 网系分析
@@ -887,15 +1017,27 @@
     html += aiOverview(ov);
     html += '<div class="kpi-tag">' + pInfo.label + '累计 · ' + b.name + '</div>';
 
-    // 核心指标: 订单 + 线索
+    // 核心指标: 订单 + 交车
     html += '<div class="hero-grid">' +
       '<div class="hero-order">' +
       '<div class="hero-label">订单</div>' +
       '<div class="hero-val">' + num(t.orders) + '<small>台</small></div>' +
       '</div>' +
       '<div class="hero-order">' +
-      '<div class="hero-label">总线索</div>' +
-      '<div class="hero-val">' + num(t.leadsTotal) + '<small>条</small></div>' +
+      '<div class="hero-label">交车</div>' +
+      '<div class="hero-val">' + num(t.deliveries) + '<small>台</small></div>' +
+      '</div>' +
+      '</div>';
+
+    // 次级指标: 线索 + 到店
+    html += '<div class="sub-kpi-grid">' +
+      '<div class="sub-kpi">' +
+      '<div class="sub-kpi-label">总线索</div>' +
+      '<div class="sub-kpi-val">' + num(t.leadsTotal) + '<small>条</small></div>' +
+      '</div>' +
+      '<div class="sub-kpi">' +
+      '<div class="sub-kpi-label">到店</div>' +
+      '<div class="sub-kpi-val">' + num(t.visits) + '<small>组</small></div>' +
       '</div>' +
       '</div>';
 
@@ -926,15 +1068,18 @@
 
     // 转化
     var __vr = t.leadsTotal ? t.visits / t.leadsTotal : 0;
-    html += '<div class="card conv-hero">' +
+    html += '<div class="card conv-hero three">' +
       '<div><div class="conv-label">线索到店率</div><div class="conv-val">' + pct(__vr) + '</div></div>' +
       '<div><div class="conv-label">线索转化率</div><div class="conv-val">' + pct(t.convRate) + '</div></div>' +
+      '<div><div class="conv-label">线索交车率</div><div class="conv-val">' + pct(t.deliveryRate) + '</div></div>' +
       '</div>';
 
     // 趋势 + 门店排名
     html += chartPlaceholder('c1', pInfo.label + '每日趋势');
-    html += chartPlaceholder('c2', '门店订单排名');
-    html += chartPlaceholder('c3', '门店线索排名');
+    html += chartPlaceholder('c2', '总线索门店排名');
+    html += chartPlaceholder('c3', '订单门店排名');
+    html += chartPlaceholder('c4', '交车门店排名');
+    html += chartPlaceholder('c5', '线索转化率排名');
     var ranks = M.anchorRanking({ brandId: brandId }, period);
     html += anchorRankBlock(ranks, '主播排名(按线索)', true);
     html += footnote() + '</div>';
@@ -943,8 +1088,10 @@
       html: html,
       charts: [
         { type: 'trend', id: 'c1', data: { series: M.brandSeries(brandId), days: days } },
-        { type: 'ordersRank', id: 'c2', data: storeStats },
-        { type: 'leadsRank', id: 'c3', data: storeStats }
+        { type: 'leadsRank', id: 'c2', data: storeStats },
+        { type: 'ordersRank', id: 'c3', data: storeStats },
+        { type: 'deliveryRank', id: 'c4', data: storeStats },
+        { type: 'convRateRank', id: 'c5', data: storeStats }
       ]
     };
   }
@@ -967,9 +1114,11 @@
       { label: '有效线索', value: num(t.leadsTotal), unit: '条' },
       { label: '到店', value: num(t.visits), unit: '组' },
       { label: '订单', value: num(t.orders), unit: '台' },
+      { label: '交车', value: num(t.deliveries), unit: '台' },
       { label: '总消耗', value: money(t.costTotal) }
     ]);
-    html += '<div class="kpi-tag">' + (period==='today'?'昨日':period==='week'?'本周':'本月') + '数据</div>';
+    var pInfo = M.periodInfo(period);
+    html += '<div class="kpi-tag">' + pInfo.label + '数据</div>';
 
     html += metricBlock(t, '指标分析');
     html += channelBlock(t.leads, t.leadsTotal, '线索渠道细分');
@@ -1008,10 +1157,12 @@
       { label: '有效线索', value: num(t.leadsTotal), unit: '条' },
       { label: '到店', value: num(t.visits), unit: '组' },
       { label: '订单', value: num(t.orders), unit: '台' },
+      { label: '交车', value: num(t.deliveries), unit: '台' },
       { label: '总消耗', value: money(t.costTotal) },
       { label: '直播时长', value: hoursFmt(t.hours) }
     ]);
-    html += '<div class="kpi-tag">' + (period==='today'?'昨日':period==='week'?'本周':'本月') + '数据</div>';
+    var pInfo = M.periodInfo(period);
+    html += '<div class="kpi-tag">' + pInfo.label + '数据</div>';
 
     html += metricBlock(t, '指标分析');
     html += channelBlock(t.leads, t.leadsTotal, '线索渠道细分');
@@ -1056,6 +1207,7 @@
     (out.charts || []).forEach(function (c) {
       if (c.type === 'leadsRank') renderLeadsRank(c.id, c.data);
       else if (c.type === 'ordersRank') renderOrdersRank(c.id, c.data);
+      else if (c.type === 'deliveryRank') renderDeliveryRank(c.id, c.data);
       else if (c.type === 'visitRateRank') renderVisitRateRank(c.id, c.data);
       else if (c.type === 'convRateRank') renderConvRateRank(c.id, c.data);
       else if (c.type === 'totalLeads') renderTotalLeadsByStore(c.id, c.data);

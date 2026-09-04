@@ -147,6 +147,7 @@ window.MOCK = (function () {
         cpl: 115 + Math.round(rng() * 55),
         visitRate: 0.21 + rng() * 0.09,
         convRate: 0.052 + rng() * 0.028,
+        dlvRate: 0.72 + rng() * 0.16,   // 订单到交车转化率
         hoursBase: 3.2 + rng() * 1.8,
         dlvCost: 1850 + Math.round(rng() * 650)
       });
@@ -232,17 +233,19 @@ window.MOCK = (function () {
       };
       var costTotal = cost.zhiboZifei + cost.zhiboJili + cost.duanyinzhi + cost.duanshipin;
 
-      // 到店/订单/时长/交车成本
+      // 到店/订单/交车/时长/交车成本
       var visits = Math.round(leadsTotal * a.visitRate * (0.8 + rng() * 0.4));
       var orders = Math.max(0, Math.round(leadsTotal * a.convRate * (0.7 + rng() * 0.6)));
       if (orders > visits) orders = visits;
+      var deliveries = Math.max(0, Math.round(orders * a.dlvRate * (0.8 + rng() * 0.4)));
+      if (deliveries > orders) deliveries = orders;
       var hours = Math.round(a.hoursBase * (0.85 + rng() * 0.3) * 10) / 10;
       var deliveryCost = Math.round(a.dlvCost * (0.92 + rng() * 0.16));
 
       arr.push({
         date: DAYS[di].iso, label: DAYS[di].label,
         leads: leads, leadsTotal: leadsTotal,
-        visits: visits, orders: orders,
+        visits: visits, orders: orders, deliveries: deliveries,
         cost: cost, costTotal: costTotal,
         hours: hours, deliveryCost: deliveryCost
       });
@@ -254,11 +257,12 @@ window.MOCK = (function () {
   function emptyAgg() {
     return {
       leads: { zhibo: 0, duanyinzhi: 0, duanshipin: 0, shipinhao: 0, xiaohongshu: 0, xianyu: 0, kuaishou: 0 },
-      leadsTotal: 0, visits: 0, orders: 0,
+      leadsTotal: 0, visits: 0, orders: 0, deliveries: 0,
       cost: { zhiboZifei: 0, zhiboJili: 0, duanyinzhi: 0, duanshipin: 0 }, costTotal: 0,
-      hours: 0, deliveryCost: 0,
-      _dlvWeighted: 0,
-      cpl: 0, orderCost: 0, convRate: 0, leadsPerHour: 0
+      hours: 0,
+      cpl: 0, orderCost: 0, deliveryCost: 0,
+      visitRate: 0, convRate: 0, deliveryRate: 0, orderDeliveryRate: 0,
+      leadsPerHour: 0
     };
   }
 
@@ -267,21 +271,23 @@ window.MOCK = (function () {
     acc.leadsTotal += r.leadsTotal;
     acc.visits += r.visits;
     acc.orders += r.orders;
+    acc.deliveries += r.deliveries;
     COST_TYPES.forEach(function (c) { acc.cost[c.key] += r.cost[c.key] || 0; });
     acc.costTotal += r.costTotal;
     acc.hours += r.hours;
-    acc._dlvWeighted += r.deliveryCost * r.orders;   // 订单加权
     return acc;
   }
 
   function withDerived(acc) {
     acc.cpl = acc.leadsTotal ? Math.round(acc.costTotal / acc.leadsTotal) : 0;
     acc.orderCost = acc.orders ? Math.round(acc.costTotal / acc.orders) : 0;
+    acc.deliveryCost = acc.deliveries ? Math.round(acc.costTotal / acc.deliveries) : 0;
+    acc.visitRate = acc.leadsTotal ? acc.visits / acc.leadsTotal : 0;
     acc.convRate = acc.leadsTotal ? acc.orders / acc.leadsTotal : 0;
+    acc.deliveryRate = acc.leadsTotal ? acc.deliveries / acc.leadsTotal : 0;
+    acc.orderDeliveryRate = acc.orders ? acc.deliveries / acc.orders : 0;
     acc.leadsPerHour = acc.hours ? Math.round(acc.leadsTotal / acc.hours * 10) / 10 : 0;
-    acc.deliveryCost = acc.orders ? Math.round(acc._dlvWeighted / acc.orders) : 0;
     acc.hours = Math.round(acc.hours * 10) / 10;
-    delete acc._dlvWeighted;
     return acc;
   }
 
@@ -395,11 +401,14 @@ window.MOCK = (function () {
     // 冠军
     var leadsChamp = storeStats.slice().sort(function(a,b){ return b.t.leadsTotal - a.t.leadsTotal; })[0];
     var ordersChamp = storeStats.slice().sort(function(a,b){ return b.t.orders - a.t.orders; })[0];
+    var dlvChamp = storeStats.slice().sort(function(a,b){ return b.t.deliveries - a.t.deliveries; })[0];
     var convChamp = storeStats.slice().sort(function(a,b){ return b.t.convRate - a.t.convRate; })[0];
     var cplChamp = storeStats.slice().filter(function(x){ return x.t.cpl > 0; }).sort(function(a,b){ return a.t.cpl - b.t.cpl; })[0];
 
     // 垫底
     var leadsBottom = storeStats.slice().sort(function(a,b){ return a.t.leadsTotal - b.t.leadsTotal; })[0];
+    var ordersBottom = storeStats.slice().sort(function(a,b){ return a.t.orders - b.t.orders; })[0];
+    var dlvBottom = storeStats.slice().sort(function(a,b){ return a.t.deliveries - b.t.deliveries; })[0];
     var convBottom = storeStats.slice().sort(function(a,b){ return a.t.convRate - b.t.convRate; })[0];
     var cplBottom = storeStats.slice().filter(function(x){ return x.t.cpl > 0; }).sort(function(a,b){ return b.t.cpl - a.t.cpl; })[0];
 
@@ -555,12 +564,14 @@ window.MOCK = (function () {
       champs: {
         leads: leadsChamp,
         orders: ordersChamp,
+        deliveries: dlvChamp,
         conv: convChamp,
         cpl: cplChamp
       },
       worst: {
         leads: leadsBottom,
-        orders: storeStats.slice().sort(function(a,b){ return a.t.orders - b.t.orders; })[0],
+        orders: ordersBottom,
+        deliveries: dlvBottom,
         conv: convBottom,
         cpl: cplBottom
       },

@@ -225,6 +225,31 @@ body {
 .ai-champ .ai-c-label { display: block; font-size: 10px; opacity: .7; }
 .ai-champ b { display: block; font-size: 13px; margin: 2px 0; font-weight: 700; }
 .ai-champ small { font-size: 11px; opacity: .85; }
+
+/* 集团版-网系列表 */
+.ai-brand-list {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.ai-brand-item {
+  background: rgba(255,255,255,.1); border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.ai-brand-item.warn { background: rgba(251, 146, 60, .2); }
+.ai-brand-name {
+  font-size: 11px; opacity: .7; color: #fff; margin-bottom: 4px;
+}
+.ai-brand-store {
+  font-size: 14px; font-weight: 600; color: #fff;
+  margin-bottom: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ai-brand-val {
+  font-size: 16px; font-weight: 700; color: #fff;
+}
+.ai-brand-val small {
+  font-size: 11px; font-weight: 500; opacity: .8; margin-left: 3px;
+}
 .ai-alerts { display: flex; flex-direction: column; gap: 6px; }
 .ai-alert {
   font-size: 12px; line-height: 1.5;
@@ -276,6 +301,20 @@ body {
 .conv-hero > div { flex: 1; }
 .conv-hero .conv-label { font-size: 12px; color: var(--ink-3); margin-bottom: 4px; }
 .conv-hero .conv-val { font-size: 24px; font-weight: 700; color: var(--ink); }
+
+/* 次级KPI(线索+到店) */
+.sub-kpi-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-bottom: 10px;
+}
+.sub-kpi {
+  background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); text-align: center;
+  padding: 12px 14px;
+}
+.sub-kpi-label { font-size: 12px; color: var(--ink-3); margin-bottom: 4px; }
+.sub-kpi-val { font-size: 24px; font-weight: 700; color: var(--ink); }
+.sub-kpi-val small { font-size: 13px; font-weight: 500; color: var(--ink-2); margin-left: 3px; }
 
 .ai-header { display: flex; align-items: center; gap: 10px; }
 .ai-title { font-size: 16px; font-weight: 700; }
@@ -337,6 +376,17 @@ body {
 .bc-top-name { flex: 1; color: var(--ink); }
 .bc-top-val { color: var(--ink-2); font-weight: 600; font-size: 12px; }
 
+/* 网系卡片-交车大字 */
+.bc-delivery {
+  text-align: center;
+  padding: 10px 0 14px;
+  border-bottom: 1px dashed var(--line);
+  margin-bottom: 12px;
+}
+.bc-dlv-label { display: block; font-size: 12px; color: var(--ink-3); margin-bottom: 4px; }
+.bc-dlv-val { font-size: 32px; font-weight: 800; color: var(--accent); line-height: 1.1; }
+.bc-dlv-val small { font-size: 14px; font-weight: 500; color: var(--ink-2); margin-left: 4px; }
+
 /* 城市分组(集团总览用) */
 .city-block {
   background: var(--card); border-radius: var(--radius);
@@ -356,6 +406,8 @@ body {
 .store-nav-card.small { padding: 10px 12px; }
 .store-nav-card.small .snc-name { font-size: 12px; }
 .store-nav-card.small .snc-metrics b { font-size: 13px; }
+.store-nav-card.clean { padding: 10px 12px; text-align: center; }
+.store-nav-card.clean .snc-name { font-size: 12px; margin: 0; }
 
 /* ---------- 指标分析 ---------- */
 .metric-grid {
