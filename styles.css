@@ -461,6 +461,15 @@ body {
 /* ---------- 空态 ---------- */
 .empty { text-align: center; color: var(--ink-3); padding: 60px 0; }
 
+/* 占位卡片 */
+.placeholder-card {
+  text-align: center; padding: 40px 20px;
+  color: var(--ink-3);
+}
+.placeholder-card .ph-icon { font-size: 36px; margin-bottom: 10px; }
+.placeholder-card .ph-title { font-size: 14px; font-weight: 600; color: var(--ink-2); margin-bottom: 6px; }
+.placeholder-card .ph-desc { font-size: 12px; line-height: 1.6; }
+
 /* ---------- 桌面端适配 ---------- */
 @media (min-width: 720px) {
   .page { padding: 16px 20px 48px; }

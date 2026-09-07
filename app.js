@@ -1032,14 +1032,18 @@
     });
     html += brandChartHtml + brandCardsHtml;
 
-    // 月度加周度环比
+    // 月度加周度环比(占位)
     var charts = [
       { type: 'trend', id: 'c1', data: { series: M.groupSeries(), days: days } },
       { type: 'brandCompare', id: 'brand-comp2' }
     ];
     if (period === 'month') {
-      html += chartPlaceholder('cw', '周度环比');
-      charts.push({ type: 'weekCompare', id: 'cw', data: M.monthWeekBreakdown({}) });
+      html += '<div class="section-title">周度环比</div>';
+      html += '<div class="card placeholder-card">';
+      html += '<div class="ph-icon">📊</div>';
+      html += '<div class="ph-title">周度环比数据待补充</div>';
+      html += '<div class="ph-desc">数据源不全，暂无法展示各周对比数据</div>';
+      html += '</div>';
     }
 
     // 手动更新的分析板块
@@ -1132,7 +1136,7 @@
     var ranks = M.anchorRanking({ brandId: brandId }, period);
     html += anchorRankBlock(ranks, '主播排名(按线索)', true);
 
-    // 月度加周度环比
+    // 月度加周度环比(占位)
     var charts = [
       { type: 'trend', id: 'c1', data: { series: M.brandSeries(brandId), days: days } },
       { type: 'leadsRank', id: 'c2', data: storeStats },
@@ -1141,8 +1145,12 @@
       { type: 'convRateRank', id: 'c5', data: storeStats }
     ];
     if (period === 'month') {
-      html += chartPlaceholder('cw', '周度环比');
-      charts.push({ type: 'weekCompare', id: 'cw', data: M.monthWeekBreakdown({ brandId: brandId }) });
+      html += '<div class="section-title">周度环比</div>';
+      html += '<div class="card placeholder-card">';
+      html += '<div class="ph-icon">📊</div>';
+      html += '<div class="ph-title">周度环比数据待补充</div>';
+      html += '<div class="ph-desc">数据源不全，暂无法展示各周对比数据</div>';
+      html += '</div>';
     }
 
     // 手动更新的分析板块
