@@ -327,6 +327,88 @@ window.MOCK = (function () {
     return { days: days, label: '' };
   }
 
+  // 月度按周拆分(用于周度环比)
+  function monthWeekBreakdown(scope) {
+    var r = rangeOf('month');
+    var from = r[0], to = r[1];
+    var weeks = [];
+    var curStart = from;
+    while (curStart <= to) {
+      // 找到这周的周一对应的日期
+      var d = new Date(DAYS[curStart].iso);
+      var dow = d.getDay(); // 0=周日
+      var daysFromMonday = dow === 0 ? 6 : dow - 1;
+      var weekEnd = Math.min(curStart + (6 - daysFromMonday), to);
+      // 聚合这周数据
+      var aids;
+      if (scope && scope.storeId) aids = anchorsOfStore(scope.storeId);
+      else if (scope && scope.brandId) aids = anchorsOfBrand(scope.brandId);
+      else aids = allAnchorIds();
+      var wagg = aggRange(aids, curStart, weekEnd);
+      var weekNum = weeks.length + 1;
+      // 生成周标签(用起止日期)
+      var startLabel = DAYS[curStart].label;
+      var endLabel = DAYS[weekEnd].label;
+      weeks.push({
+        label: '第' + weekNum + '周',
+        sub: startLabel + '~' + endLabel,
+        leadsTotal: wagg.leadsTotal,
+        visits: wagg.visits,
+        orders: wagg.orders,
+        deliveries: wagg.deliveries,
+        costTotal: wagg.costTotal,
+        convRate: wagg.convRate,
+        deliveryRate: wagg.deliveryRate
+      });
+      curStart = weekEnd + 1;
+    }
+    return weeks;
+  }
+
+  // 手动更新的周度/月度分析数据(运营主管每周一提供)
+  var MANUAL_WEEK = {
+    updatedAt: '2026-08-25',
+    periodLabel: '第34周 (8/25~8/31)',
+    channels: {
+      zhibo: { name: '直播', val: 680, color: '#fe2c55' },
+      duanyinzhi: { name: '短引直', val: 395, color: '#ff7a00' },
+      duanshipin: { name: '抖音短视频', val: 230, color: '#ffc107' },
+      shipinhao: { name: '视频号视频', val: 92, color: '#07c160' },
+      xiaohongshu: { name: '小红书', val: 68, color: '#ff2e4d' },
+      xianyu: { name: '闲鱼', val: 24, color: '#93a1b8' },
+      kuaishou: { name: '快手', val: 52, color: '#8b5cf6' }
+    },
+    cost: { zifei: 112000, changjia: 38000, total: 150000 },
+    highlights: [
+      '直播渠道占比45%，仍是线索主力，王朝网海洋店两场大场贡献突出',
+      '短引直 CPL 约 ¥92，低于集团均值 ¥98，投流效率较好',
+      '视频号线索量环比上周上涨12%，免费渠道持续起量',
+      '方程豹交车率8.2%，四网系中最高'
+    ]
+  };
+
+  var MANUAL_MONTH = {
+    updatedAt: '2026-08-28',
+    periodLabel: '2026年8月',
+    channels: {
+      zhibo: { name: '直播', val: 18650, color: '#fe2c55' },
+      duanyinzhi: { name: '短引直', val: 10350, color: '#ff7a00' },
+      duanshipin: { name: '抖音短视频', val: 6120, color: '#ffc107' },
+      shipinhao: { name: '视频号视频', val: 2480, color: '#07c160' },
+      xiaohongshu: { name: '小红书', val: 1920, color: '#ff2e4d' },
+      xianyu: { name: '闲鱼', val: 720, color: '#93a1b8' },
+      kuaishou: { name: '快手', val: 1450, color: '#8b5cf6' }
+    },
+    cost: { zifei: 3050000, changjia: 980000, total: 4030000 },
+    highlights: [
+      '本月总线索 41,690 条，交车 2,680 台，整体完成月度目标 92%',
+      '直播渠道贡献 44.7% 线索，略高于上月的 42.3%',
+      '免费渠道(视频号+小红书+闲鱼+快手)合计占比 16.2%，环比提升 2.1 个百分点',
+      '方程豹网系增长最快，线索同比增长 35%，新店爬坡顺利',
+      '腾势网系转化持续优化，线索转化率从 5.8% 提升至 6.4%'
+    ]
+  };
+
   function anchorsOfStore(storeId) { return storeById[storeId].anchors; }
   function anchorsOfBrand(brandId) {
     var ids = [];
@@ -618,6 +700,9 @@ window.MOCK = (function () {
     anchorAgg: anchorAgg, storeAgg: storeAgg, brandAgg: brandAgg, groupAgg: groupAgg,
     anchorSeries: anchorSeries, storeSeries: storeSeries, brandSeries: brandSeries, groupSeries: groupSeries,
     storeRanking: storeRanking, anchorRanking: anchorRanking,
-    buildOverview: buildOverview
+    buildOverview: buildOverview,
+    monthWeekBreakdown: monthWeekBreakdown,
+    manualWeek: MANUAL_WEEK,
+    manualMonth: MANUAL_MONTH
   };
 })();

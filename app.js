@@ -651,25 +651,48 @@
   }
 
   // 渠道/消耗细分(单店/主播页用)
-  function channelBlock(leads, leadsTotal, title) {
-    var colors = ['#fe2c55', '#ff7a00', '#ffc107', '#07c160', '#ff2e4d', '#93a1b8', '#8b5cf6'];
-    var rows = M.LEAD_CHANNELS.map(function (c, i) {
-      var v = leads[c.key] || 0;
-      var p = leadsTotal ? v / leadsTotal : 0;
-      return { name: c.name, value: v, pct: p, color: colors[i], hasCost: c.hasCost };
-    });
+  function channelBlock(leads, leadsTotal, title, simple) {
     var html = '<div class="section-title">' + title + '</div><div class="card"><div class="ch-list">';
-    rows.forEach(function (r) {
-      html += '<div class="ch-row">' +
-        '<div class="ch-name"><i style="background:' + r.color + '"></i>' + r.name + (r.hasCost ? '' : '<span class="tag-mini">无消耗</span>') + '</div>' +
-        '<div class="ch-bar-wrap"><div class="ch-bar"><i style="width:' + Math.round(r.pct * 100) + '%;background:' + r.color + '"></i></div></div>' +
-        '<div class="ch-num">' + r.value + '<small>' + pct(r.pct) + '</small></div>' +
-        '</div>';
-    });
+    if (simple) {
+      // 简化版: 抖音合并 + 免费渠道
+      var merged = [
+        { name: '抖音', color: '#fe2c55', val: (leads.zhibo||0) + (leads.duanyinzhi||0) + (leads.duanshipin||0), hasCost: true },
+        { name: '视频号视频', color: '#07c160', val: leads.shipinhao || 0, hasCost: false },
+        { name: '小红书', color: '#ff2e4d', val: leads.xiaohongshu || 0, hasCost: false },
+        { name: '闲鱼', color: '#93a1b8', val: leads.xianyu || 0, hasCost: false },
+        { name: '快手', color: '#8b5cf6', val: leads.kuaishou || 0, hasCost: false }
+      ];
+      merged.forEach(function (r) {
+        var p = leadsTotal ? r.val / leadsTotal : 0;
+        html += '<div class="ch-row">' +
+          '<div class="ch-name"><i style="background:' + r.color + '"></i>' + r.name + (r.hasCost ? '' : '<span class="tag-mini">无消耗</span>') + '</div>' +
+          '<div class="ch-bar-wrap"><div class="ch-bar"><i style="width:' + Math.round(p * 100) + '%;background:' + r.color + '"></i></div></div>' +
+          '<div class="ch-num">' + num(r.val) + '<small>' + pct(p) + '</small></div>' +
+          '</div>';
+      });
+    } else {
+      // 完整版: 7个渠道
+      var colors = ['#fe2c55', '#ff7a00', '#ffc107', '#07c160', '#ff2e4d', '#93a1b8', '#8b5cf6'];
+      M.LEAD_CHANNELS.forEach(function (c, i) {
+        var v = leads[c.key] || 0;
+        var p = leadsTotal ? v / leadsTotal : 0;
+        html += '<div class="ch-row">' +
+          '<div class="ch-name"><i style="background:' + colors[i] + '"></i>' + c.name + (c.hasCost ? '' : '<span class="tag-mini">无消耗</span>') + '</div>' +
+          '<div class="ch-bar-wrap"><div class="ch-bar"><i style="width:' + Math.round(p * 100) + '%;background:' + colors[i] + '"></i></div></div>' +
+          '<div class="ch-num">' + num(v) + '<small>' + pct(p) + '</small></div>' +
+          '</div>';
+      });
+    }
     html += '</div></div>';
     return html;
   }
-  function costBlock(cost, costTotal, title) {
+  function costBlock(cost, costTotal, title, simple) {
+    if (simple) {
+      return '<div class="section-title">' + title + '</div><div class="card cost-hero">' +
+        '<div class="ch-label">总消耗</div>' +
+        '<div class="ch-total">' + money(costTotal) + '</div>' +
+        '</div>';
+    }
     var html = '<div class="section-title">' + title + '</div><div class="card"><div class="ch-list">';
     M.COST_TYPES.forEach(function (c) {
       var v = cost[c.key] || 0;
@@ -689,6 +712,73 @@
 
   function footnote() {
     return '<div class="footnote">新港集团新媒体数据中心 · Demo版<br>当前为演示数据 · 框架定稿后接 IT 真实数据</div>';
+  }
+
+  // 手动更新的分析板块(周度/月度用)
+  function manualAnalysisBlock(data, title) {
+    var total = 0;
+    Object.keys(data.channels).forEach(function (k) { total += data.channels[k].val; });
+    var html = '<div class="section-title">' + title + '<span class="update-tag">更新于 ' + data.updatedAt + '</span></div>';
+    html += '<div class="manual-card">';
+    html += '<div class="manual-period">' + data.periodLabel + '</div>';
+
+    // 细分渠道
+    html += '<div class="manual-subtitle">📊 渠道细分</div>';
+    html += '<div class="ch-list">';
+    Object.keys(data.channels).forEach(function (k) {
+      var c = data.channels[k];
+      var p = total ? c.val / total : 0;
+      html += '<div class="ch-row">' +
+        '<div class="ch-name"><i style="background:' + c.color + '"></i>' + c.name + '</div>' +
+        '<div class="ch-bar-wrap"><div class="ch-bar"><i style="width:' + Math.round(p * 100) + '%;background:' + c.color + '"></i></div></div>' +
+        '<div class="ch-num">' + num(c.val) + '<small>' + pct(p) + '</small></div>' +
+        '</div>';
+    });
+    html += '</div>';
+
+    // 消耗细分
+    html += '<div class="manual-subtitle">💰 消耗细分</div>';
+    html += '<div class="manual-cost">';
+    html += '<div class="mc-total">总消耗 <b>' + money(data.cost.total) + '</b></div>';
+    html += '<div class="mc-split">';
+    html += '<div><span>自费</span><b>' + money(data.cost.zifei) + '</b></div>';
+    html += '<div><span>厂家</span><b>' + money(data.cost.changjia) + '</b></div>';
+    html += '</div></div>';
+
+    // 关键洞察
+    html += '<div class="manual-subtitle">💡 关键洞察</div>';
+    html += '<div class="ai-alerts">';
+    data.highlights.forEach(function (s, i) {
+      html += '<div class="ai-alert info"><b>' + (i + 1) + '.</b> ' + s + '</div>';
+    });
+    html += '</div>';
+
+    html += '</div>';
+    return html;
+  }
+
+  // 周度环比图(月度视图用)
+  function renderWeekCompareChart(id, weeks) {
+    var el = document.getElementById(id);
+    if (!el || !window.echarts) return;
+    var ch = echarts.init(el);
+    _charts.push(ch);
+    ch.setOption({
+      grid: { left: 40, right: 30, top: 30, bottom: 40 },
+      tooltip: { trigger: 'axis' },
+      legend: { data: ['线索', '订单', '交车'], bottom: 0, textStyle: {fontSize: 11} },
+      xAxis: { type: 'category', data: weeks.map(function(w){return w.label;}),
+        axisLabel: {fontSize: 11, formatter: function(v, i){ return v + '\n' + weeks[i].sub; }}},
+      yAxis: { type: 'value', name: '数量' },
+      series: [
+        { name: '线索', type: 'bar', data: weeks.map(function(w){return w.leadsTotal;}),
+          itemStyle: { color: '#93b4f5', borderRadius: [6,6,0,0] }, barMaxWidth: 28 },
+        { name: '订单', type: 'bar', data: weeks.map(function(w){return w.orders;}),
+          itemStyle: { color: '#07c160', borderRadius: [6,6,0,0] }, barMaxWidth: 28 },
+        { name: '交车', type: 'bar', data: weeks.map(function(w){return w.deliveries;}),
+          itemStyle: { color: '#8b5cf6', borderRadius: [6,6,0,0] }, barMaxWidth: 28 }
+      ]
+    });
   }
 
   /* ============== 公共: 总览页/网系页的"三观"生成 ============== */
@@ -725,30 +815,11 @@
       '</div>' +
       '</div>';
 
-    // 3. 分渠道（条形图）
-    var colors = ['#fe2c55', '#ff7a00', '#ffc107', '#07c160', '#ff2e4d', '#93a1b8', '#8b5cf6'];
-    html += '<div class="card"><div class="ch-list">';
-    M.LEAD_CHANNELS.forEach(function (c, i) {
-      var v = t.leads[c.key] || 0;
-      var p = t.leadsTotal ? v / t.leadsTotal : 0;
-      html += '<div class="ch-row">' +
-        '<div class="ch-name"><i style="background:' + colors[i] + '"></i>' + c.name + (c.hasCost ? '' : '<span class="tag-mini">无消耗</span>') + '</div>' +
-        '<div class="ch-bar-wrap"><div class="ch-bar"><i style="width:' + Math.round(p * 100) + '%;background:' + colors[i] + '"></i></div></div>' +
-        '<div class="ch-num">' + v + '<small>' + pct(p) + '</small></div>' +
-        '</div>';
-    });
-    html += '</div></div>';
+    // 3. 分渠道(简化版)
+    html += channelBlock(t.leads, t.leadsTotal, '渠道贡献', true);
 
-    // 4. 消耗（自费/厂家）
-    var zifei = t.cost.zhiboZifei + t.cost.duanyinzhi + t.cost.duanshipin;
-    var changjia = t.cost.zhiboJili;
-    html += '<div class="card cost-hero">' +
-      '<div class="ch-label">总消耗</div>' +
-      '<div class="ch-total">' + money(t.costTotal) + '</div>' +
-      '<div class="cost-split">' +
-      '<div><span>自费</span><b>' + money(zifei) + '</b></div>' +
-      '<div><span>厂家</span><b>' + money(changjia) + '</b></div>' +
-      '</div></div>';
+    // 4. 消耗(简化版)
+    html += costBlock(t.cost, t.costTotal, '消耗', true);
 
     // 5. 转化（到店率+线索转化率+交车率）
     var visitRate = t.leadsTotal ? t.visits / t.leadsTotal : 0;
@@ -934,30 +1005,11 @@
       '</div>' +
       '</div>';
 
-    // 分渠道
-    var _colors = ['#fe2c55', '#ff7a00', '#ffc107', '#07c160', '#ff2e4d', '#93a1b8', '#8b5cf6'];
-    html += '<div class="card"><div class="ch-list">';
-    M.LEAD_CHANNELS.forEach(function (c, i) {
-      var v = t.leads[c.key] || 0;
-      var p = t.leadsTotal ? v / t.leadsTotal : 0;
-      html += '<div class="ch-row">' +
-        '<div class="ch-name"><i style="background:' + _colors[i] + '"></i>' + c.name + (c.hasCost ? '' : '<span class="tag-mini">无消耗</span>') + '</div>' +
-        '<div class="ch-bar-wrap"><div class="ch-bar"><i style="width:' + Math.round(p * 100) + '%;background:' + _colors[i] + '"></i></div></div>' +
-        '<div class="ch-num">' + num(v) + '<small>' + pct(p) + '</small></div>' +
-        '</div>';
-    });
-    html += '</div></div>';
+    // 分渠道(简化版)
+    html += channelBlock(t.leads, t.leadsTotal, '渠道贡献', true);
 
-    // 消耗
-    var _zifei = t.cost.zhiboZifei + t.cost.duanyinzhi + t.cost.duanshipin;
-    var _changjia = t.cost.zhiboJili;
-    html += '<div class="card cost-hero">' +
-      '<div class="ch-label">总消耗</div>' +
-      '<div class="ch-total">' + money(t.costTotal) + '</div>' +
-      '<div class="cost-split">' +
-      '<div><span>自费</span><b>' + money(_zifei) + '</b></div>' +
-      '<div><span>厂家</span><b>' + money(_changjia) + '</b></div>' +
-      '</div></div>';
+    // 消耗(简化版)
+    html += costBlock(t.cost, t.costTotal, '消耗', true);
 
     // 转化
     var _vr = t.leadsTotal ? t.visits / t.leadsTotal : 0;
@@ -975,14 +1027,26 @@
       brandCardsHtml += brandAnalysisCard(b.id, period);
     });
     html += brandChartHtml + brandCardsHtml;
+
+    // 月度加周度环比
+    var charts = [
+      { type: 'trend', id: 'c1', data: { series: M.groupSeries(), days: days } },
+      { type: 'brandCompare', id: 'brand-comp2' }
+    ];
+    if (period === 'month') {
+      html += chartPlaceholder('cw', '周度环比');
+      charts.push({ type: 'weekCompare', id: 'cw', data: M.monthWeekBreakdown({}) });
+    }
+
+    // 手动更新的分析板块
+    var manual = period === 'month' ? M.manualMonth : M.manualWeek;
+    html += manualAnalysisBlock(manual, period === 'month' ? '📅 月度分析' : '📅 周度分析');
+
     html += footnote() + '</div>';
 
     return {
       html: html,
-      charts: [
-        { type: 'trend', id: 'c1', data: { series: M.groupSeries(), days: days } },
-        { type: 'brandCompare', id: 'brand-comp2' }
-      ]
+      charts: charts
     };
   }
 
@@ -1041,30 +1105,11 @@
       '</div>' +
       '</div>';
 
-    // 分渠道
-    var __colors = ['#fe2c55', '#ff7a00', '#ffc107', '#07c160', '#ff2e4d', '#93a1b8', '#8b5cf6'];
-    html += '<div class="card"><div class="ch-list">';
-    M.LEAD_CHANNELS.forEach(function (c, i) {
-      var v = t.leads[c.key] || 0;
-      var p = t.leadsTotal ? v / t.leadsTotal : 0;
-      html += '<div class="ch-row">' +
-        '<div class="ch-name"><i style="background:' + __colors[i] + '"></i>' + c.name + (c.hasCost ? '' : '<span class="tag-mini">无消耗</span>') + '</div>' +
-        '<div class="ch-bar-wrap"><div class="ch-bar"><i style="width:' + Math.round(p * 100) + '%;background:' + __colors[i] + '"></i></div></div>' +
-        '<div class="ch-num">' + num(v) + '<small>' + pct(p) + '</small></div>' +
-        '</div>';
-    });
-    html += '</div></div>';
+    // 分渠道(简化版)
+    html += channelBlock(t.leads, t.leadsTotal, '渠道贡献', true);
 
-    // 消耗
-    var __zifei = t.cost.zhiboZifei + t.cost.duanyinzhi + t.cost.duanshipin;
-    var __changjia = t.cost.zhiboJili;
-    html += '<div class="card cost-hero">' +
-      '<div class="ch-label">总消耗</div>' +
-      '<div class="ch-total">' + money(t.costTotal) + '</div>' +
-      '<div class="cost-split">' +
-      '<div><span>自费</span><b>' + money(__zifei) + '</b></div>' +
-      '<div><span>厂家</span><b>' + money(__changjia) + '</b></div>' +
-      '</div></div>';
+    // 消耗(简化版)
+    html += costBlock(t.cost, t.costTotal, '消耗', true);
 
     // 转化
     var __vr = t.leadsTotal ? t.visits / t.leadsTotal : 0;
@@ -1082,17 +1127,29 @@
     html += chartPlaceholder('c5', '线索转化率排名');
     var ranks = M.anchorRanking({ brandId: brandId }, period);
     html += anchorRankBlock(ranks, '主播排名(按线索)', true);
+
+    // 月度加周度环比
+    var charts = [
+      { type: 'trend', id: 'c1', data: { series: M.brandSeries(brandId), days: days } },
+      { type: 'leadsRank', id: 'c2', data: storeStats },
+      { type: 'ordersRank', id: 'c3', data: storeStats },
+      { type: 'deliveryRank', id: 'c4', data: storeStats },
+      { type: 'convRateRank', id: 'c5', data: storeStats }
+    ];
+    if (period === 'month') {
+      html += chartPlaceholder('cw', '周度环比');
+      charts.push({ type: 'weekCompare', id: 'cw', data: M.monthWeekBreakdown({ brandId: brandId }) });
+    }
+
+    // 手动更新的分析板块
+    var manual = period === 'month' ? M.manualMonth : M.manualWeek;
+    html += manualAnalysisBlock(manual, period === 'month' ? '📅 月度分析' : '📅 周度分析');
+
     html += footnote() + '</div>';
 
     return {
       html: html,
-      charts: [
-        { type: 'trend', id: 'c1', data: { series: M.brandSeries(brandId), days: days } },
-        { type: 'leadsRank', id: 'c2', data: storeStats },
-        { type: 'ordersRank', id: 'c3', data: storeStats },
-        { type: 'deliveryRank', id: 'c4', data: storeStats },
-        { type: 'convRateRank', id: 'c5', data: storeStats }
-      ]
+      charts: charts
     };
   }
 
@@ -1121,8 +1178,9 @@
     html += '<div class="kpi-tag">' + pInfo.label + '数据</div>';
 
     html += metricBlock(t, '指标分析');
-    html += channelBlock(t.leads, t.leadsTotal, '线索渠道细分');
-    html += costBlock(t.cost, t.costTotal, '消耗细分');
+    var simple = period === 'today';
+    html += channelBlock(t.leads, t.leadsTotal, '线索渠道细分', simple);
+    html += costBlock(t.cost, t.costTotal, '消耗细分', simple);
     html += anchorRankBlock(anchorRanks, '主播排名(按线索)', false);
 
     if (period !== 'today') {
@@ -1165,8 +1223,9 @@
     html += '<div class="kpi-tag">' + pInfo.label + '数据</div>';
 
     html += metricBlock(t, '指标分析');
-    html += channelBlock(t.leads, t.leadsTotal, '线索渠道细分');
-    html += costBlock(t.cost, t.costTotal, '消耗细分');
+    var simple = period === 'today';
+    html += channelBlock(t.leads, t.leadsTotal, '线索渠道细分', simple);
+    html += costBlock(t.cost, t.costTotal, '消耗细分', simple);
     if (period !== 'today') {
       var pInfo = M.periodInfo(period);
     var days = pInfo.days;
@@ -1216,6 +1275,7 @@
       else if (c.type === 'eff') renderEffByStore(c.id, c.data);
       else if (c.type === 'singleChannel') renderChannelByStore(c.id, c.data.storeStats, c.data.key, c.data.name, c.data.color);
       else if (c.type === 'brandCompare') brandComparisonChart(c.id);
+      else if (c.type === 'weekCompare') renderWeekCompareChart(c.id, c.data);
       else if (c.type === 'cityCompare') cityComparisonChart(c.id, 'today');
       else if (c.type === 'leadsStack') renderLeadsStack(c.id, c.data);
       else if (c.type === 'costStack') renderCostStack(c.id, c.data);
