@@ -716,34 +716,38 @@
 
   // 手动更新的分析板块(周度/月度用)
   function manualAnalysisBlock(data, title) {
-    var total = 0;
-    Object.keys(data.channels).forEach(function (k) { total += data.channels[k].val; });
     var html = '<div class="section-title">' + title + '<span class="update-tag">更新于 ' + data.updatedAt + '</span></div>';
     html += '<div class="manual-card">';
     html += '<div class="manual-period">' + data.periodLabel + '</div>';
 
-    // 细分渠道
-    html += '<div class="manual-subtitle">📊 渠道细分</div>';
-    html += '<div class="ch-list">';
-    Object.keys(data.channels).forEach(function (k) {
-      var c = data.channels[k];
-      var p = total ? c.val / total : 0;
-      html += '<div class="ch-row">' +
-        '<div class="ch-name"><i style="background:' + c.color + '"></i>' + c.name + '</div>' +
-        '<div class="ch-bar-wrap"><div class="ch-bar"><i style="width:' + Math.round(p * 100) + '%;background:' + c.color + '"></i></div></div>' +
-        '<div class="ch-num">' + num(c.val) + '<small>' + pct(p) + '</small></div>' +
-        '</div>';
-    });
-    html += '</div>';
+    // 细分渠道(有数据才显示)
+    if (data.channels) {
+      var total = 0;
+      Object.keys(data.channels).forEach(function (k) { total += data.channels[k].val; });
+      html += '<div class="manual-subtitle">📊 渠道细分</div>';
+      html += '<div class="ch-list">';
+      Object.keys(data.channels).forEach(function (k) {
+        var c = data.channels[k];
+        var p = total ? c.val / total : 0;
+        html += '<div class="ch-row">' +
+          '<div class="ch-name"><i style="background:' + c.color + '"></i>' + c.name + '</div>' +
+          '<div class="ch-bar-wrap"><div class="ch-bar"><i style="width:' + Math.round(p * 100) + '%;background:' + c.color + '"></i></div></div>' +
+          '<div class="ch-num">' + num(c.val) + '<small>' + pct(p) + '</small></div>' +
+          '</div>';
+      });
+      html += '</div>';
+    }
 
-    // 消耗细分
-    html += '<div class="manual-subtitle">💰 消耗细分</div>';
-    html += '<div class="manual-cost">';
-    html += '<div class="mc-total">总消耗 <b>' + money(data.cost.total) + '</b></div>';
-    html += '<div class="mc-split">';
-    html += '<div><span>自费</span><b>' + money(data.cost.zifei) + '</b></div>';
-    html += '<div><span>厂家</span><b>' + money(data.cost.changjia) + '</b></div>';
-    html += '</div></div>';
+    // 消耗细分(有数据才显示)
+    if (data.cost && data.cost.total) {
+      html += '<div class="manual-subtitle">💰 消耗细分</div>';
+      html += '<div class="manual-cost">';
+      html += '<div class="mc-total">总消耗 <b>' + money(data.cost.total) + '</b></div>';
+      html += '<div class="mc-split">';
+      html += '<div><span>自费</span><b>' + money(data.cost.zifei) + '</b></div>';
+      html += '<div><span>厂家</span><b>' + money(data.cost.changjia) + '</b></div>';
+      html += '</div></div>';
+    }
 
     // 关键洞察
     html += '<div class="manual-subtitle">💡 关键洞察</div>';
