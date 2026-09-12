@@ -780,7 +780,9 @@
     html += aiOverview(ov);
 
     // ===== 核心指标区 =====
-    html += '<div class="kpi-tag">昨日数据 · ' + scopeName + '</div>';
+    var _isRealFcb = scopeName === M.brandById('fcbao').name;
+    html += '<div class="kpi-tag">昨日数据 · ' + scopeName +
+      (_isRealFcb ? '<span class="real-tag">IT真实数据 · ' + M.realToday.label + '</span>' : '') + '</div>';
 
     // 1. 订单 + 交车（左右并排，最突出）
     html += '<div class="hero-grid">' +
@@ -1174,7 +1176,8 @@
       { label: '总消耗', value: money(t.costTotal) }
     ]);
     var pInfo = M.periodInfo(period);
-    html += '<div class="kpi-tag">' + pInfo.label + '数据</div>';
+    html += '<div class="kpi-tag">' + pInfo.label + '数据' +
+      (s.brand === 'fcbao' && period === 'today' ? '<span class="real-tag">IT真实数据 · ' + M.realToday.label + '</span>' : '') + '</div>';
 
     html += metricBlock(t, '指标分析');
     var simple = period === 'today';
@@ -1219,7 +1222,8 @@
       { label: '直播时长', value: hoursFmt(t.hours) }
     ]);
     var pInfo = M.periodInfo(period);
-    html += '<div class="kpi-tag">' + pInfo.label + '数据</div>';
+    html += '<div class="kpi-tag">' + pInfo.label + '数据' +
+      (s.brand === 'fcbao' && period === 'today' ? '<span class="real-tag">IT真实数据 · ' + M.realToday.label + '</span>' : '') + '</div>';
 
     html += metricBlock(t, '指标分析');
     var simple = period === 'today';

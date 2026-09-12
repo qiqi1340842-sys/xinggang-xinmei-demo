@@ -408,19 +408,149 @@ window.MOCK = (function () {
   }
   function allAnchorIds() { return ANCHORS.map(function (a) { return a.id; }); }
 
+  /* ---------------- 真实数据层: 方程豹 2026-09-11(来自IT新媒体看板) ---------------- */
+  var REAL_TODAY = {
+    date: '2026-09-11', label: '9月11日',
+    stores: {
+      fb_hongchuan: { leads: 49, visits: 7, orders: 3, deliveries: 0, spend: 0 },
+      fb_kunling:   { leads: 29, visits: 1, orders: 0, deliveries: 0, spend: 17.23 },
+      fb_kunlun:    { leads: 23, visits: 0, orders: 0, deliveries: 0, spend: 9.64 },
+      fb_xihe:      { leads: 23, visits: 4, orders: 2, deliveries: 0, spend: 278.61 },
+      fb_huanji:    { leads: 20, visits: 0, orders: 0, deliveries: 0, spend: 5.64 },
+      fb_kunyi:     { leads: 16, visits: 3, orders: 0, deliveries: 0, spend: 161.16 },
+      fb_gzkunlun:  { leads: 15, visits: 0, orders: 0, deliveries: 0, spend: 0 },
+      fb_luzhou:    { leads: 9,  visits: 0, orders: 0, deliveries: 0, spend: 265.69 },
+      fb_gyxihe:    { leads: 8,  visits: 1, orders: 0, deliveries: 0, spend: 0 },
+      fb_gzlx:      { leads: 0,  visits: 1, orders: 1, deliveries: 0, spend: 0 },
+      fb_gzxihe:    { leads: 0,  visits: 1, orders: 2, deliveries: 0, spend: 0 },
+      fb_kunda:     { leads: 0,  visits: 1, orders: 1, deliveries: 0, spend: 17.82 },
+      fb_yibin:     { leads: 0,  visits: 1, orders: 0, deliveries: 0, spend: 94.62 },
+      fb_xinghan:   { leads: 0,  visits: 1, orders: 0, deliveries: 0, spend: 294.67 },
+      fb_tianhe:    { leads: 0,  visits: 0, orders: 0, deliveries: 0, spend: 0 },
+      fb_kuntai:    { leads: 0,  visits: 0, orders: 0, deliveries: 0, spend: 0 },
+      fb_lsxihe:    { leads: 0,  visits: 0, orders: 0, deliveries: 0, spend: 0 },
+      fb_gzkunling: { leads: 0,  visits: 0, orders: 0, deliveries: 0, spend: 0 },
+      fb_xizang:    { leads: 0,  visits: 0, orders: 0, deliveries: 0, spend: 0 }
+    },
+    anchors: {
+      '夏敏':   { leads: 29, visits: 1, orders: 0, deliveries: 0, spend: 0 },
+      '付纯洁': { leads: 24, visits: 3, orders: 3, deliveries: 0, spend: 0 },
+      '江楠':   { leads: 23, visits: 1, orders: 0, deliveries: 0, spend: 9.64 },
+      '齐安':   { leads: 23, visits: 2, orders: 2, deliveries: 0, spend: 176.33 },
+      '徐露':   { leads: 20, visits: 0, orders: 0, deliveries: 0, spend: 5.64 },
+      '任婉莹': { leads: 16, visits: 2, orders: 0, deliveries: 0, spend: 161.16 },
+      '曾新':   { leads: 6,  visits: 0, orders: 0, deliveries: 0, spend: 136.54 },
+      '马璐璐': { leads: 3,  visits: 0, orders: 0, deliveries: 0, spend: 129.15 },
+      '王一多': { leads: 0,  visits: 1, orders: 1, deliveries: 0, spend: 17.82 },
+      '赵梦雪': { leads: 0,  visits: 1, orders: 0, deliveries: 0, spend: 0 },
+      '蒙海梅': { leads: 0,  visits: 1, orders: 0, deliveries: 0, spend: 0 },
+      '骆姗':   { leads: 0,  visits: 2, orders: 0, deliveries: 0, spend: 102.28 },
+      '刘鑫雨': { leads: 0,  visits: 1, orders: 0, deliveries: 0, spend: 0 },
+      '何娇':   { leads: 0,  visits: 0, orders: 0, deliveries: 0, spend: 17.23 },
+      '喻攀':   { leads: 0,  visits: 0, orders: 0, deliveries: 0, spend: 44.03 },
+      '田景燚': { leads: 0,  visits: 0, orders: 0, deliveries: 0, spend: 250.64 },
+      '陈丽娟': { leads: 0,  visits: 0, orders: 0, deliveries: 0, spend: 94.62 }
+    }
+  };
+
+  // 把真实总数按渠道权重拆开(渠道拆分IT暂无,按比例估算展示)
+  function splitLeads(total) {
+    var w = [
+      ['zhibo', 0.45], ['duanyinzhi', 0.25], ['duanshipin', 0.15],
+      ['shipinhao', 0.06], ['xiaohongshu', 0.03], ['xiaohongshuFufei', 0.03],
+      ['xianyu', 0.015], ['kuaishou', 0.015]
+    ];
+    var leads = {};
+    var floors = [];
+    var fsum = 0;
+    w.forEach(function (x) {
+      var e = total * x[1];
+      var f = Math.floor(e);
+      floors.push({ key: x[0], v: f, frac: e - f });
+      fsum += f;
+    });
+    var remain = total - fsum;
+    floors.sort(function (a, b) { return b.frac - a.frac; });
+    for (var i = 0; i < remain && i < floors.length; i++) floors[i].v += 1;
+    floors.forEach(function (x) { leads[x.key] = x.v; });
+    return leads;
+  }
+
+  function splitSpend(total) {
+    var w = { zhiboZifei: 0.34, zhiboJili: 0.2, duanyinzhi: 0.22, duanshipin: 0.15, xiaohongshuFufei: 0.09 };
+    var cost = {};
+    Object.keys(w).forEach(function (k) { cost[k] = Math.round(total * w[k]); });
+    return cost;
+  }
+
+  // 由真实{leads,visits,orders,deliveries,spend}构造完整聚合对象
+  function realAgg(d, hours) {
+    var acc = emptyAgg();
+    acc.leads = splitLeads(d.leads);
+    acc.leadsTotal = d.leads;
+    acc.visits = d.visits;
+    acc.orders = d.orders;
+    acc.deliveries = d.deliveries;
+    acc.cost = splitSpend(d.spend);
+    acc.costTotal = Math.round(d.spend);
+    acc.hours = hours;
+    return withDerived(acc);
+  }
+
+  function sumAggs(list) {
+    var acc = emptyAgg();
+    list.forEach(function (t) {
+      LEAD_CHANNELS.forEach(function (c) { acc.leads[c.key] += t.leads[c.key] || 0; });
+      acc.leadsTotal += t.leadsTotal;
+      acc.visits += t.visits;
+      acc.orders += t.orders;
+      acc.deliveries += t.deliveries;
+      COST_TYPES.forEach(function (c) { acc.cost[c.key] += t.cost[c.key] || 0; });
+      acc.costTotal += t.costTotal;
+      acc.hours += t.hours;
+    });
+    return withDerived(acc);
+  }
+
+  function realStoreAgg(storeId) {
+    var d = REAL_TODAY.stores[storeId] || { leads: 0, visits: 0, orders: 0, deliveries: 0, spend: 0 };
+    return realAgg(d, d.leads > 0 ? 4 : 0);
+  }
+  function realAnchorAgg(anchor) {
+    var d = REAL_TODAY.anchors[anchor.name] || { leads: 0, visits: 0, orders: 0, deliveries: 0, spend: 0 };
+    return realAgg(d, d.leads > 0 ? 3.5 : 0);
+  }
+  function isRealStore(storeId) {
+    var s = storeById[storeId];
+    return s && s.brand === 'fcbao';
+  }
+
   function anchorAgg(anchorId, period) {
+    var a = anchorById(anchorId);
+    if (period === 'today' && a && isRealStore(a.store)) return realAnchorAgg(a);
     var r = rangeOf(period);
     return aggRange([anchorId], r[0], r[1]);
   }
   function storeAgg(storeId, period) {
+    if (period === 'today' && isRealStore(storeId)) return realStoreAgg(storeId);
     var r = rangeOf(period);
     return aggRange(anchorsOfStore(storeId), r[0], r[1]);
   }
   function brandAgg(brandId, period) {
+    if (period === 'today' && brandId === 'fcbao') {
+      var list = [];
+      STORES.forEach(function (s) { if (s.brand === 'fcbao') list.push(realStoreAgg(s.id)); });
+      return sumAggs(list);
+    }
     var r = rangeOf(period);
     return aggRange(anchorsOfBrand(brandId), r[0], r[1]);
   }
   function groupAgg(period) {
+    if (period === 'today') {
+      var list = [];
+      BRANDS.forEach(function (b) { list.push(brandAgg(b.id, 'today')); });
+      return sumAggs(list);
+    }
     var r = rangeOf(period);
     return aggRange(allAnchorIds(), r[0], r[1]);
   }
@@ -487,7 +617,17 @@ window.MOCK = (function () {
 
     // 渠道洞察(昨日 vs 周均)
     var channelInsights = [];
-    if (period === 'today') {
+    if (period === 'today' && brandId === 'fcbao') {
+      // 方程豹真实数据: 只基于当日真实总量,不与mock周均对比
+      var dyTotal = total.leads.zhibo + total.leads.duanyinzhi + total.leads.duanshipin;
+      var dyPct = total.leadsTotal ? dyTotal / total.leadsTotal : 0;
+      channelInsights.push('抖音渠道贡献' + dyTotal + '条，占比' + Math.round(dyPct * 100) + '%（渠道拆分为估算值）');
+      var freeTotal2 = total.leads.shipinhao + total.leads.xiaohongshu + total.leads.xianyu + total.leads.kuaishou;
+      if (freeTotal2 > 0) {
+        channelInsights.push('免费渠道(视频号/小红书/闲鱼/快手)贡献' + freeTotal2 + '条，占比' + Math.round(freeTotal2 / total.leadsTotal * 100) + '%');
+      }
+      channelInsights.push('本页为IT真实数据(' + REAL_TODAY.label + ')，线索' + total.leadsTotal + '条、订单' + total.orders + '台、交车' + total.deliveries + '台');
+    } else if (period === 'today') {
       var wk = brandId ? brandAgg(brandId, 'week') : groupAgg('week');
       var wkAvg = function(key) { return wk.leads[key] / 7; };
       // 找涨幅最大的渠道
@@ -522,6 +662,7 @@ window.MOCK = (function () {
     var anomalies = [];
     if (period === 'today') {
       storeStats.forEach(function (x) {
+        if (x.store.brand === 'fcbao') return; // 方程豹真实数据,不与mock周均比
         var prevS = storeAgg(x.store.id, 'today');
         // 对比 7 日均值
         var wk = storeAgg(x.store.id, 'week');
@@ -694,6 +835,7 @@ window.MOCK = (function () {
     buildOverview: buildOverview,
     monthWeekBreakdown: monthWeekBreakdown,
     manualWeek: MANUAL_WEEK,
-    manualMonth: MANUAL_MONTH
+    manualMonth: MANUAL_MONTH,
+    realToday: { date: REAL_TODAY.date, label: REAL_TODAY.label, brands: ['fcbao'] }
   };
 })();
