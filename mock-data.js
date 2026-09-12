@@ -55,24 +55,26 @@ window.MOCK = (function () {
     { id: 'ts_yibin',  name: '宜宾上元臻智',  city: '宜宾', brand: 'tengshi',  mgr: '李福强' },
     { id: 'ts_mianyang', name: '绵阳新港鑫泽', city: '绵阳', brand: 'tengshi', mgr: '黄建波' },
     { id: 'ts_gz',     name: '贵州上元臻智',  city: '贵阳', brand: 'tengshi',  mgr: '陈金文' },
-    // ===== 方程豹(17家) =====
-    { id: 'fb_xinghan', name: '上元星汉',    city: '成都', brand: 'fcbao',    mgr: '吴涛' },
-    { id: 'fb_kunling', name: '上元坤灵',    city: '成都', brand: 'fcbao',    mgr: '黄岭' },
-    { id: 'fb_kunda',  name: '上元坤达',     city: '成都', brand: 'fcbao',    mgr: '刘海旭' },
-    { id: 'fb_kunyi',  name: '上元坤颐',     city: '成都', brand: 'fcbao',    mgr: '刘海旭' },
-    { id: 'fb_huanji', name: '上元寰极',     city: '成都', brand: 'fcbao',    mgr: '刘海旭' },
-    { id: 'fb_hongchuan', name: '上元弘川',  city: '成都', brand: 'fcbao',    mgr: '纪海燕' },
-    { id: 'fb_kunlun', name: '上元昆仑',     city: '成都', brand: 'fcbao',    mgr: '刘海旭' },
-    { id: 'fb_xihe',   name: '上元曦和',     city: '成都', brand: 'fcbao',    mgr: '曾强' },
-    { id: 'fb_tianhe', name: '新港天河',     city: '成都', brand: 'fcbao',    mgr: '蒲霞' },
-    { id: 'fb_lsxihe', name: '乐山上元曦和',  city: '乐山', brand: 'fcbao',    mgr: '王静' },
-    { id: 'fb_yibin',  name: '宜宾上元曦和',  city: '宜宾', brand: 'fcbao',    mgr: '孙秀琼' },
-    { id: 'fb_luzhou', name: '泸州上元坤灵',  city: '泸州', brand: 'fcbao',    mgr: '汪珮芸' },
-    { id: 'fb_gzkunling', name: '贵州上元坤灵', city: '贵阳', brand: 'fcbao', mgr: '' },
-    { id: 'fb_gzkunlun',  name: '贵州上元昆仑', city: '贵阳', brand: 'fcbao', mgr: '' },
-    { id: 'fb_gzxihe', name: '贵州上元曦和',  city: '贵阳', brand: 'fcbao',    mgr: '' },
-    { id: 'fb_gzlx',   name: '贵州新港澜轩',  city: '贵阳', brand: 'fcbao',    mgr: '' },
-    { id: 'fb_gyxihe', name: '贵阳上元曦和',  city: '贵阳', brand: 'fcbao',    mgr: '黄楠' }
+    // ===== 方程豹(19家, 已与IT对齐, itId=IT系统门店ID) =====
+    { id: 'fb_xinghan', name: '上元星汉',    city: '成都', brand: 'fcbao',    mgr: '吴涛',   itId: 'org_fcb_shuangliu_xinghan' },
+    { id: 'fb_kunling', name: '上元坤灵',    city: '成都', brand: 'fcbao',    mgr: '黄岭',   itId: 'org_fcb_shuangliu_kunling' },
+    { id: 'fb_kunda',  name: '上元坤达',     city: '成都', brand: 'fcbao',    mgr: '刘海旭', itId: 'org_fcb_xindu_kunda' },
+    { id: 'fb_kunyi',  name: '上元坤颐',     city: '成都', brand: 'fcbao',    mgr: '刘海旭', itId: 'org_fcb_pidu_kunyi' },
+    { id: 'fb_huanji', name: '上元寰极',     city: '成都', brand: 'fcbao',    mgr: '刘海旭', itId: 'org_fcb_pengzhou_huanji' },
+    { id: 'fb_hongchuan', name: '上元弘川',  city: '成都', brand: 'fcbao',    mgr: '纪海燕', itId: 'org_fcb_ximen_hongchuan' },
+    { id: 'fb_kunlun', name: '上元昆仑',     city: '成都', brand: 'fcbao',    mgr: '刘海旭', itId: 'org_fcb_wenjiang_kunlun' },
+    { id: 'fb_kuntai', name: '上元坤泰',     city: '成都', brand: 'fcbao',    mgr: '',       itId: 'org_fcb_wenjiang_kuntai' },
+    { id: 'fb_xihe',   name: '上元曦和',     city: '成都', brand: 'fcbao',    mgr: '曾强',   itId: 'org_fcb_longtan_xihe' },
+    { id: 'fb_tianhe', name: '新港天河',     city: '成都', brand: 'fcbao',    mgr: '蒲霞',   itId: 'org_fcb_longquan_tianhe' },
+    { id: 'fb_lsxihe', name: '乐山上元曦和',  city: '乐山', brand: 'fcbao',    mgr: '王静',   itId: 'org_fcb_leshan_xihe' },
+    { id: 'fb_yibin',  name: '宜宾上元曦和',  city: '宜宾', brand: 'fcbao',    mgr: '孙秀琼', itId: 'org_fcb_yibin_xihe' },
+    { id: 'fb_luzhou', name: '泸州上元坤灵',  city: '泸州', brand: 'fcbao',    mgr: '汪珮芸', itId: 'org_fcb_luzhou_kunling' },
+    { id: 'fb_gzkunling', name: '贵州上元坤灵', city: '贵阳', brand: 'fcbao', mgr: '',       itId: 'org_fcb_guizhou_kunling' },
+    { id: 'fb_gzkunlun',  name: '贵州上元昆仑', city: '贵阳', brand: 'fcbao', mgr: '',       itId: 'org_fcb_guizhou_kunlun' },
+    { id: 'fb_gzxihe', name: '贵州上元曦和',  city: '贵阳', brand: 'fcbao',    mgr: '',       itId: 'org_fcb_guizhou_xihe' },
+    { id: 'fb_gzlx',   name: '贵州新港澜轩',  city: '贵阳', brand: 'fcbao',    mgr: '',       itId: 'org_fcb_guizhou_lanxuan' },
+    { id: 'fb_gyxihe', name: '贵阳上元曦和',  city: '贵阳', brand: 'fcbao',    mgr: '黄楠',   itId: 'org_fcb_guiyang_xihe' },
+    { id: 'fb_xizang', name: '西藏上元曦和',  city: '拉萨', brand: 'fcbao',    mgr: '',       itId: 'org_fcb_xizang_xihe' }
   ];
 
   // 真实主播名单(全部补齐)
@@ -106,26 +108,32 @@ window.MOCK = (function () {
     ts_yibin: ['张耀文'],
     ts_mianyang: ['黄晓彤', '徐丽涵'],
     ts_gz: ['李璨'],
-    // 方程豹
+    // 方程豹(与IT对齐 2026-09-12, 含跨网系主播)
     fb_xinghan: ['喻攀', '田景燚'],
-    fb_kunling: ['冉雨晨', '何娇'],
+    fb_kunling: ['冉雨晨', '何娇', '夏敏'],
     fb_kunda: ['王一多'],
     fb_kunyi: ['任婉莹'],
     fb_huanji: ['徐露'],
-    fb_hongchuan: ['付纯洁'],
+    fb_hongchuan: ['付纯洁', '刘鑫雨'],
     fb_kunlun: ['江楠'],
-    fb_xihe: ['齐安', '骆姗'],
-    fb_tianhe: ['待补充', '待补充'],
-    fb_lsxihe: ['唐甜甜', '吴佳慧'],
-    fb_yibin: ['陈丽娟'],
-    fb_luzhou: ['曾新'],
-    fb_gyxihe: ['何映竹', '张飞飞']
+    fb_kuntai: ['待补充'],
+    fb_xihe: ['齐安', '骆姗', '张迪'],
+    fb_tianhe: ['蒙海梅'],
+    fb_lsxihe: ['甜甜', '知知'],
+    fb_yibin: ['陈丽娟', '赵梦雪'],
+    fb_luzhou: ['曾新', '马璐璐', '曾圆圆'],
+    fb_gzkunling: ['待补充'],
+    fb_gzkunlun: ['王宇'],
+    fb_gzxihe: ['刘少华', '骆婷婷'],
+    fb_gzlx: ['冯立郡', '梁倩', '王佳'],
+    fb_gyxihe: ['何映竹', '张飞飞'],
+    fb_xizang: ['待补充']
   };
 
   // 主播人设(按城市和网系给不同基数)
   var cityFactor = {
     '成都': 1.2, '乐山': 0.85, '泸州': 0.8,
-    '宜宾': 0.75, '自贡': 0.7, '绵阳': 0.78, '贵阳': 0.7
+    '宜宾': 0.75, '自贡': 0.7, '绵阳': 0.78, '贵阳': 0.7, '拉萨': 0.5
   };
   var brandFactor = {
     'wangchao': 1.0, 'haiyang': 1.1, 'tengshi': 0.75, 'fcbao': 0.7
@@ -156,23 +164,25 @@ window.MOCK = (function () {
   });
 
   /* ---------------- 渠道定义 ---------------- */
-  // 线索 7 渠道
+  // 线索 8 渠道(展示时: 抖音=直播+短引直+短视频合并, 小红书分免费/付费)
   var LEAD_CHANNELS = [
-    { key: 'zhibo',       name: '直播',       hasCost: true,  share: 0.45 },
-    { key: 'duanyinzhi',  name: '短引直',     hasCost: true,  share: 0.25 },
-    { key: 'duanshipin',  name: '抖音短视频', hasCost: true,  share: 0.15 },
-    { key: 'shipinhao',   name: '视频号视频', hasCost: false, share: 0.06 },
-    { key: 'xiaohongshu', name: '小红书',     hasCost: false, share: 0.05 },
-    { key: 'xianyu',      name: '闲鱼',       hasCost: false, share: 0.02 },
-    { key: 'kuaishou',    name: '快手',       hasCost: false, share: 0.02 }
+    { key: 'zhibo',            name: '直播',       hasCost: true,  share: 0.45 },
+    { key: 'duanyinzhi',       name: '短引直',     hasCost: true,  share: 0.25 },
+    { key: 'duanshipin',       name: '抖音短视频', hasCost: true,  share: 0.15 },
+    { key: 'shipinhao',        name: '视频号视频', hasCost: false, share: 0.06 },
+    { key: 'xiaohongshu',      name: '小红书',     hasCost: false, share: 0.03 },
+    { key: 'xiaohongshuFufei', name: '付费小红书', hasCost: true,  share: 0.03 },
+    { key: 'xianyu',           name: '闲鱼',       hasCost: false, share: 0.015 },
+    { key: 'kuaishou',         name: '快手',       hasCost: false, share: 0.015 }
   ];
 
-  // 消耗 4 类型
+  // 消耗 5 类型
   var COST_TYPES = [
     { key: 'zhiboZifei', name: '直播自费消耗' },
     { key: 'zhiboJili',  name: '直播厂家消耗' },
     { key: 'duanyinzhi', name: '短引直消耗' },
-    { key: 'duanshipin', name: '抖音短视频消耗' }
+    { key: 'duanshipin', name: '抖音短视频消耗' },
+    { key: 'xiaohongshuFufei', name: '付费小红书消耗' }
   ];
 
   var storeById = {};
@@ -207,21 +217,28 @@ window.MOCK = (function () {
 
       var leadsTotal = Math.max(3, Math.round(a.leadsBase * wk * trend * wave));
 
-      // 7 渠道分配(按 share + 随机扰动)
+      // 8 渠道分配(最大余数法: 合计严格=总线索且小渠道不被吃掉)
       var leads = {};
-      var assigned = 0;
+      var exact = [];
+      var floors = [];
+      var floorSum = 0;
       for (var ci = 0; ci < LEAD_CHANNELS.length; ci++) {
-        var share = LEAD_CHANNELS[ci].share * (0.85 + rng() * 0.3);
-        var v;
-        if (ci === LEAD_CHANNELS.length - 1) {
-          v = leadsTotal - assigned;                        // 最后一个渠道兜底
-        } else {
-          v = Math.round(leadsTotal * share);
-        }
-        if (v < 0) v = 0;
-        leads[LEAD_CHANNELS[ci].key] = v;
-        assigned += v;
+        var w = LEAD_CHANNELS[ci].share * (0.85 + rng() * 0.3);
+        exact.push(w);
       }
+      var wSum = 0;
+      exact.forEach(function (w) { wSum += w; });
+      for (var ci = 0; ci < LEAD_CHANNELS.length; ci++) {
+        var e = leadsTotal * exact[ci] / wSum;
+        var f = Math.floor(e);
+        floors.push({ key: LEAD_CHANNELS[ci].key, floor: f, frac: e - f });
+        floorSum += f;
+      }
+      // 剩余额度按小数部分从大到小补 1
+      var remain = leadsTotal - floorSum;
+      floors.sort(function (a, b) { return b.frac - a.frac; });
+      for (var ri = 0; ri < remain && ri < floors.length; ri++) floors[ri].floor += 1;
+      floors.forEach(function (x) { leads[x.key] = x.floor; });
 
       // 消耗: 按渠道线索 × 渠道CPL, 直播拆自费/厂家(约6:4)
       var zbCost = Math.round(leads.zhibo * 118 * (0.9 + rng() * 0.2));
@@ -229,9 +246,10 @@ window.MOCK = (function () {
         zhiboZifei: Math.round(zbCost * 0.6),
         zhiboJili: Math.round(zbCost * 0.4),
         duanyinzhi: Math.round(leads.duanyinzhi * 100 * (0.9 + rng() * 0.2)),
-        duanshipin: Math.round(leads.duanshipin * 112 * (0.9 + rng() * 0.2))
+        duanshipin: Math.round(leads.duanshipin * 112 * (0.9 + rng() * 0.2)),
+        xiaohongshuFufei: Math.round(leads.xiaohongshuFufei * 150 * (0.9 + rng() * 0.2))
       };
-      var costTotal = cost.zhiboZifei + cost.zhiboJili + cost.duanyinzhi + cost.duanshipin;
+      var costTotal = cost.zhiboZifei + cost.zhiboJili + cost.duanyinzhi + cost.duanshipin + cost.xiaohongshuFufei;
 
       // 到店/订单/交车/时长/交车成本
       var visits = Math.round(leadsTotal * a.visitRate * (0.8 + rng() * 0.4));
@@ -256,9 +274,9 @@ window.MOCK = (function () {
   /* ---------------- 聚合 ---------------- */
   function emptyAgg() {
     return {
-      leads: { zhibo: 0, duanyinzhi: 0, duanshipin: 0, shipinhao: 0, xiaohongshu: 0, xianyu: 0, kuaishou: 0 },
+      leads: { zhibo: 0, duanyinzhi: 0, duanshipin: 0, shipinhao: 0, xiaohongshu: 0, xiaohongshuFufei: 0, xianyu: 0, kuaishou: 0 },
       leadsTotal: 0, visits: 0, orders: 0, deliveries: 0,
-      cost: { zhiboZifei: 0, zhiboJili: 0, duanyinzhi: 0, duanshipin: 0 }, costTotal: 0,
+      cost: { zhiboZifei: 0, zhiboJili: 0, duanyinzhi: 0, duanshipin: 0, xiaohongshuFufei: 0 }, costTotal: 0,
       hours: 0,
       cpl: 0, orderCost: 0, deliveryCost: 0,
       visitRate: 0, convRate: 0, deliveryRate: 0, orderDeliveryRate: 0,

@@ -650,39 +650,26 @@
     return html;
   }
 
-  // 渠道/消耗细分(单店/主播页用)
+  // 渠道/消耗细分(全部层级统一用6渠道简化结构)
   function channelBlock(leads, leadsTotal, title, simple) {
     var html = '<div class="section-title">' + title + '</div><div class="card"><div class="ch-list">';
-    if (simple) {
-      // 简化版: 抖音合并 + 免费渠道
-      var merged = [
-        { name: '抖音', color: '#fe2c55', val: (leads.zhibo||0) + (leads.duanyinzhi||0) + (leads.duanshipin||0), hasCost: true },
-        { name: '视频号视频', color: '#07c160', val: leads.shipinhao || 0, hasCost: false },
-        { name: '小红书', color: '#ff2e4d', val: leads.xiaohongshu || 0, hasCost: false },
-        { name: '闲鱼', color: '#93a1b8', val: leads.xianyu || 0, hasCost: false },
-        { name: '快手', color: '#8b5cf6', val: leads.kuaishou || 0, hasCost: false }
-      ];
-      merged.forEach(function (r) {
-        var p = leadsTotal ? r.val / leadsTotal : 0;
-        html += '<div class="ch-row">' +
-          '<div class="ch-name"><i style="background:' + r.color + '"></i>' + r.name + (r.hasCost ? '' : '<span class="tag-mini">无消耗</span>') + '</div>' +
-          '<div class="ch-bar-wrap"><div class="ch-bar"><i style="width:' + Math.round(p * 100) + '%;background:' + r.color + '"></i></div></div>' +
-          '<div class="ch-num">' + num(r.val) + '<small>' + pct(p) + '</small></div>' +
-          '</div>';
-      });
-    } else {
-      // 完整版: 7个渠道
-      var colors = ['#fe2c55', '#ff7a00', '#ffc107', '#07c160', '#ff2e4d', '#93a1b8', '#8b5cf6'];
-      M.LEAD_CHANNELS.forEach(function (c, i) {
-        var v = leads[c.key] || 0;
-        var p = leadsTotal ? v / leadsTotal : 0;
-        html += '<div class="ch-row">' +
-          '<div class="ch-name"><i style="background:' + colors[i] + '"></i>' + c.name + (c.hasCost ? '' : '<span class="tag-mini">无消耗</span>') + '</div>' +
-          '<div class="ch-bar-wrap"><div class="ch-bar"><i style="width:' + Math.round(p * 100) + '%;background:' + colors[i] + '"></i></div></div>' +
-          '<div class="ch-num">' + num(v) + '<small>' + pct(p) + '</small></div>' +
-          '</div>';
-      });
-    }
+    // 6渠道: 抖音(直播+短引直+短视频合并) / 视频号 / 小红书 / 付费小红书 / 闲鱼 / 快手
+    var merged = [
+      { name: '抖音', color: '#fe2c55', val: (leads.zhibo||0) + (leads.duanyinzhi||0) + (leads.duanshipin||0), hasCost: true },
+      { name: '视频号', color: '#07c160', val: leads.shipinhao || 0, hasCost: false },
+      { name: '小红书', color: '#ff2e4d', val: leads.xiaohongshu || 0, hasCost: false },
+      { name: '付费小红书', color: '#ff6b81', val: leads.xiaohongshuFufei || 0, hasCost: true },
+      { name: '闲鱼', color: '#93a1b8', val: leads.xianyu || 0, hasCost: false },
+      { name: '快手', color: '#8b5cf6', val: leads.kuaishou || 0, hasCost: false }
+    ];
+    merged.forEach(function (r) {
+      var p = leadsTotal ? r.val / leadsTotal : 0;
+      html += '<div class="ch-row">' +
+        '<div class="ch-name"><i style="background:' + r.color + '"></i>' + r.name + (r.hasCost ? '' : '<span class="tag-mini">无消耗</span>') + '</div>' +
+        '<div class="ch-bar-wrap"><div class="ch-bar"><i style="width:' + Math.round(p * 100) + '%;background:' + r.color + '"></i></div></div>' +
+        '<div class="ch-num">' + num(r.val) + '<small>' + pct(p) + '</small></div>' +
+        '</div>';
+    });
     html += '</div></div>';
     return html;
   }
